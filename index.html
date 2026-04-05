@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>MAXI CHRONO</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{width:100%;height:100%;overflow:hidden;background:#000;color:#fff;font-family:'Bebas Neue',Impact,sans-serif}
+
+#tabs{position:fixed;top:0;left:0;right:0;height:56px;display:flex;background:rgba(0,0,0,.95);border-bottom:1px solid #222;z-index:200}
+.tab{flex:1;border:none;background:none;color:rgba(255,255,255,.4);font-family:inherit;font-size:clamp(.6rem,2vw,.95rem);letter-spacing:1.5px;cursor:pointer;border-right:1px solid #222;transition:color .15s,background .15s}
+.tab.on{color:#fff;background:rgba(255,255,255,.07)}
+#btnFS{width:52px;border:none;background:none;color:rgba(255,255,255,.45);font-size:1.3rem;cursor:pointer;border-left:1px solid #222;flex-shrink:0}
+
+.screen{display:none;position:fixed;top:56px;left:0;right:0;bottom:0;transition:background .3s}
+.screen.on{display:block}
+
+/* Stage principal */
+.stage{position:absolute;top:0;left:0;right:0;bottom:0;display:flex;align-items:stretch}
+.dblock{position:relative;flex:1;display:flex;align-items:center;justify-content:center}
+.dval{font-family:'Bebas Neue',Impact,sans-serif;line-height:1;white-space:nowrap;transition:color .3s}
+
+/* Boutons +/- sur les chiffres */
+.adj{position:absolute;left:0;right:0;height:20%;background:rgba(255,255,255,.1);border:none;color:#fff;font-family:inherit;font-size:clamp(1.2rem,4vw,3rem);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:opacity .25s,background .15s;z-index:5}
+.adj.t{top:0;border-radius:0 0 6px 6px}
+.adj.b{bottom:0;border-radius:6px 6px 0 0}
+.adj:active{background:rgba(255,255,255,.28)}
+.adj.off{opacity:0;pointer-events:none}
+
+/* Séparateur : deux boutons ronds (▶/⏸ + ↺) */
+.sep-col{width:clamp(44px,7vw,80px);flex-shrink:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(8px,2vh,24px);position:relative;z-index:10}
+.sep-dot{display:flex;flex-direction:column;align-items:center;gap:clamp(8px,2vh,24px);pointer-events:none;transition:opacity .25s;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%)}
+.sep-dot span{width:clamp(8px,1.4vw,14px);height:clamp(8px,1.4vw,14px);border-radius:50%;background:rgba(255,255,255,.35);display:block}
+.sep-btn{width:clamp(36px,5.5vw,64px);height:clamp(36px,5.5vw,64px);border-radius:50%;border:2px solid rgba(255,255,255,.3);background:rgba(255,255,255,.1);color:#fff;font-size:clamp(.9rem,2vw,1.6rem);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s,opacity .25s;flex-shrink:0;position:relative;z-index:10}
+.sep-btn:active{background:rgba(255,255,255,.35)}
+.sep-btn.is-running{background:#e65100;border-color:#e65100}
+.sep-btn.off{opacity:0;pointer-events:none}
+/* Au repos : les deux boutons sont visibles mais discrets */
+.sep-btn.idle{opacity:.55;border-color:rgba(255,255,255,.2);background:rgba(255,255,255,.06)}
+
+.clock-sep{width:clamp(16px,3vw,40px);flex-shrink:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(6px,2vh,24px)}
+.clock-sep span{width:clamp(7px,1.5vw,16px);height:clamp(7px,1.5vw,16px);border-radius:50%;background:rgba(255,255,255,.4);display:block}
+
+/* Labels */
+#phaseLabel{position:fixed;top:62px;left:0;right:0;text-align:center;font-size:clamp(1.5rem,6vw,5rem);letter-spacing:8px;z-index:150;pointer-events:none;text-shadow:0 2px 12px rgba(0,0,0,.9);display:none}
+#repBadge{position:fixed;bottom:8px;right:10px;font-size:clamp(.9rem,2.5vw,1.8rem);letter-spacing:2px;background:rgba(0,0,0,.6);padding:4px 12px;border-radius:6px;z-index:160;display:none}
+
+/* Swatches horloge */
+#swatches{position:fixed;bottom:8px;left:0;right:0;display:none;justify-content:center;gap:10px;padding:8px;z-index:150}
+.sw{width:34px;height:34px;border-radius:50%;cursor:pointer;border:3px solid transparent;transition:transform .15s,border-color .15s;flex-shrink:0}
+.sw.on,.sw:hover{border-color:#fff;transform:scale(1.18)}
+
+/* ── CONFIG INTERVALLE ── */
+#ivScreen{position:absolute;inset:0}
+#ivCfg{position:absolute;inset:0;display:flex;flex-direction:column}
+.ivcols{display:flex;flex:1;min-height:0}
+.ivcol{flex:1;height:100%;display:flex;flex-direction:column;position:relative;border-right:1px solid #222}
+.ivcol:last-child{border-right:none}
+.ivcol .adj{height:22%}
+.ivcol-body{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px}
+.ivcol-label{font-size:clamp(.6rem,2vw,1.1rem);letter-spacing:3px;opacity:.65}
+.ivcol-val{font-size:clamp(2rem,9vw,8rem);line-height:1;transition:color .2s}
+
+/* Ligne infinite toggle */
+#ivInfRow{display:flex;align-items:center;justify-content:center;gap:16px;padding:14px 0;border-top:1px solid #222;flex-shrink:0}
+#ivInfLabel{font-size:clamp(.8rem,2.5vw,1.3rem);letter-spacing:3px;opacity:.7}
+.toggle-wrap{display:flex;align-items:center;gap:10px;font-size:clamp(.75rem,2vw,1.1rem);opacity:.8;cursor:pointer}
+.toggle-track{width:52px;height:28px;border-radius:14px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);position:relative;transition:background .2s;flex-shrink:0}
+.toggle-track.on{background:#00c853}
+.toggle-thumb{position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:transform .2s}
+.toggle-track.on .toggle-thumb{transform:translateX(24px)}
+
+/* Bouton LANCER dans ivCfg */
+#ivLancer{display:flex;justify-content:center;padding:12px 0;border-top:1px solid #222;flex-shrink:0}
+#ivLancerBtn{background:#00c853;color:#000;border:none;font-family:inherit;font-size:clamp(1.2rem,4vw,2.5rem);letter-spacing:3px;padding:clamp(10px,2vh,20px) clamp(24px,5vw,60px);border-radius:10px;cursor:pointer;transition:background .15s,transform .1s}
+#ivLancerBtn:hover{background:#00e676}
+#ivLancerBtn:active{transform:scale(.96)}
+
+/* Vue running intervalle */
+#ivRunDiv{position:absolute;inset:0;display:none}
+
+@keyframes flash{0%,100%{opacity:1}50%{opacity:.05}}
+.flash{animation:flash .5s 4}
+</style>
+</head>
+<body>
+
+<div id="tabs">
+  <button class="tab on" data-s="clock">🕐 HORLOGE</button>
+  <button class="tab" data-s="chrono">⏱ CHRONO</button>
+  <button class="tab" data-s="rebours">⏳ REBOURS</button>
+  <button class="tab" data-s="interval">💪 TRAVAIL/REPOS</button>
+  <button id="btnFS">⛶</button>
+</div>
+
+<div class="screen on" id="s-clock"></div>
+<div class="screen" id="s-chrono"></div>
+<div class="screen" id="s-rebours"></div>
+<div class="screen" id="s-interval">
+  <!-- ivCfg et ivRunDiv injectés par JS -->
+</div>
+
+<div id="phaseLabel"></div>
+<div id="repBadge"></div>
+<div id="swatches">
+  <div class="sw on" data-c="#00e5ff" style="background:#00e5ff"></div>
+  <div class="sw" data-c="#ffffff" style="background:#fff"></div>
+  <div class="sw" data-c="#00e676" style="background:#00e676"></div>
+  <div class="sw" data-c="#ff9100" style="background:#ff9100"></div>
+  <div class="sw" data-c="#ff1744" style="background:#ff1744"></div>
+  <div class="sw" data-c="#ffd600" style="background:#ffd600"></div>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const pad=n=>String(Math.max(0,n)).padStart(2,'0');
+const fmt=s=>[pad(Math.floor(Math.abs(s)/60)),pad(Math.abs(s)%60)];
+
+/* ═══ AUDIO ═══ */
+let AC;
+function beep(f=880,d=.12,v=.55){
+  try{
+    if(!AC)AC=new(window.AudioContext||window.webkitAudioContext)();
+    const o=AC.createOscillator(),g=AC.createGain();
+    o.connect(g);g.connect(AC.destination);
+    o.type='square';o.frequency.value=f;
+    g.gain.setValueAtTime(v,AC.currentTime);
+    g.gain.exponentialRampToValueAtTime(.001,AC.currentTime+d);
+    o.start();o.stop(AC.currentTime+d);
+  }catch(e){}
+}
+function beepEnd(){
+  try{
+    if(!AC)AC=new(window.AudioContext||window.webkitAudioContext)();
+    const play=(f1,f2,t,d)=>{[f1,f2].forEach(f=>{
+      const o=AC.createOscillator(),g=AC.createGain();
+      o.connect(g);g.connect(AC.destination);o.type='sawtooth';o.frequency.value=f;
+      g.gain.setValueAtTime(0,AC.currentTime+t);
+      g.gain.linearRampToValueAtTime(1,AC.currentTime+t+.02);
+      g.gain.setValueAtTime(1,AC.currentTime+t+d-.05);
+      g.gain.linearRampToValueAtTime(0,AC.currentTime+t+d);
+      o.start(AC.currentTime+t);o.stop(AC.currentTime+t+d);
+    });};
+    play(880,1760,0,.55);play(880,1760,.7,.55);play(880,1760,1.4,.55);play(660,1320,2.2,1.2);
+  }catch(e){}
+}
+function beepChange(){
+  try{
+    if(!AC)AC=new(window.AudioContext||window.webkitAudioContext)();
+    // Coup de sifflet : 3 oscillateurs en parallèle (fondamentale + harmoniques) + durée longue
+    const hit=(freqs,start,dur,vol)=>{
+      freqs.forEach(f=>{
+        const o=AC.createOscillator(),g=AC.createGain();
+        o.connect(g);g.connect(AC.destination);
+        o.type="sawtooth";o.frequency.value=f;
+        g.gain.setValueAtTime(0,AC.currentTime+start);
+        g.gain.linearRampToValueAtTime(vol,AC.currentTime+start+.015);
+        g.gain.setValueAtTime(vol,AC.currentTime+start+dur-.06);
+        g.gain.linearRampToValueAtTime(0,AC.currentTime+start+dur);
+        o.start(AC.currentTime+start);o.stop(AC.currentTime+start+dur);
+      });
+    };
+    // 2 coups forts séparés
+    hit([880,1760,2640],0,.45,1.0);
+    hit([880,1760,2640],.6,.45,1.0);
+  }catch(e){}
+}
+
+/* ═══ FIT TEXT ═══ */
+const _cv=document.createElement('canvas'),_cx=_cv.getContext('2d');
+function fitFontSize(text,availH,availW){
+  let lo=10,hi=3000,mid;
+  for(let i=0;i<24;i++){mid=(lo+hi)/2;_cx.font=mid+'px Bebas Neue';
+    if(mid>availH||_cx.measureText(text).width>availW)hi=mid;else lo=mid;}
+  return lo*.91;
+}
+
+/* ═══ STAGE BUILDER ═══ */
+function buildStage(screenEl, parts, clockMode){
+  screenEl.innerHTML='';
+  const stage=document.createElement('div');stage.className='stage';screenEl.appendChild(stage);
+  const dvals=[],sepCols=[];
+
+  parts.forEach((p,i)=>{
+    if(i>0){
+      if(clockMode){
+        const cs=document.createElement('div');cs.className='clock-sep';
+        cs.innerHTML='<span></span><span></span>';stage.appendChild(cs);sepCols.push(cs);
+      } else {
+        const sc=document.createElement('div');sc.className='sep-col';
+        // dots (masqués une fois actif)
+        const dots=document.createElement('div');dots.className='sep-dot';
+        dots.innerHTML='<span></span><span></span>';sc.appendChild(dots);
+        // bouton play/pause
+        const pb=document.createElement('button');pb.className='sep-btn idle';pb.innerHTML='&#9654;';sc.appendChild(pb);
+        // bouton reset
+        const rb=document.createElement('button');rb.className='sep-btn idle';rb.textContent='↺';sc.appendChild(rb);
+        stage.appendChild(sc);
+        sepCols.push({el:sc,dots,pb,rb});
+      }
+    }
+    const db=document.createElement('div');db.className='dblock';
+    if(p.adj){
+      const bt=document.createElement('button');bt.className='adj t';bt.textContent='+';
+      bt.dataset.k=p.adj.k;bt.dataset.d=p.adj.s;db.appendChild(bt);
+    }
+    const dv=document.createElement('div');dv.className='dval';dv.id=p.id;dv.textContent='00';db.appendChild(dv);
+    if(p.adj){
+      const bb=document.createElement('button');bb.className='adj b';bb.textContent='−';
+      bb.dataset.k=p.adj.k;bb.dataset.d=-p.adj.s;db.appendChild(bb);
+    }
+    stage.appendChild(db);dvals.push(dv);
+  });
+  return {stage,dvals,sepCols};
+}
+
+/* ═══ sepUpdate : state = 'idle' | 'running' | 'paused' ═══ */
+function sepUpdate(sepCols, state, onPlay, onPause, onReset){
+  sepCols.forEach(sc=>{
+    if(!sc.dots)return;
+    // cloner pour virer les anciens listeners
+    const newPb=sc.pb.cloneNode(true);
+    const newRb=sc.rb.cloneNode(true);
+    sc.pb.parentNode.replaceChild(newPb,sc.pb);sc.pb=newPb;
+    sc.rb.parentNode.replaceChild(newRb,sc.rb);sc.rb=newRb;
+
+    sc.dots.style.opacity='0'; // toujours masqué dès qu'on a les boutons
+
+    if(state==='running'){
+      // ⏸
+      sc.pb.innerHTML='&#9646;&#9646;';
+      sc.pb.className='sep-btn is-running';
+      sc.pb.addEventListener('click',onPause);
+      sc.rb.className='sep-btn';
+      sc.rb.textContent='↺';
+      sc.rb.addEventListener('click',onReset);
+    } else if(state==='paused'){
+      // ▶
+      sc.pb.innerHTML='&#9654;';
+      sc.pb.className='sep-btn';
+      sc.pb.addEventListener('click',onPlay);
+      sc.rb.className='sep-btn';
+      sc.rb.textContent='↺';
+      sc.rb.addEventListener('click',onReset);
+    } else {
+      // idle : ▶ discret, ↺ discret
+      sc.pb.innerHTML='&#9654;';
+      sc.pb.className='sep-btn idle';
+      sc.pb.addEventListener('click',onPlay);
+      sc.rb.className='sep-btn idle';
+      sc.rb.textContent='↺';
+      sc.rb.addEventListener('click',onReset);
+    }
+  });
+}
+
+/* ═══ FIT STAGE ═══ */
+function fitStage(stageEl,isClockMode){
+  const sw=stageEl.clientWidth,sh=stageEl.clientHeight;
+  if(!sw||!sh)return;
+  const dbs=[...stageEl.querySelectorAll('.dblock')];
+  const seps=isClockMode?[...stageEl.querySelectorAll('.clock-sep')]:[...stageEl.querySelectorAll('.sep-col')];
+  const sepW=seps.reduce((a,s)=>a+s.offsetWidth,0);
+  const availW=(sw-sepW)/Math.max(1,dbs.length);
+  const fs=fitFontSize('00',sh,availW);
+  dbs.forEach(db=>{const dv=db.querySelector('.dval');if(dv)dv.style.fontSize=fs+'px';});
+  if(isClockMode){const sz=Math.max(8,fs*.07)+'px';seps.forEach(s=>s.querySelectorAll('span').forEach(sp=>{sp.style.width=sz;sp.style.height=sz}));}
+}
+
+/* ═══ CONFIG ═══ */
+const V={rM:5,rS:0,wS:30,rSv:15,iRp:6};
+const LIM={rM:[0,99],rS:[0,59],wS:[5,599],rSv:[5,599],iRp:[1,99]};
+const STEP={};
+
+/* ══════════════ CLOCK ══════════════ */
+const {stage:clkStage,dvals:clkDV,sepCols:clkSep}=buildStage($('s-clock'),[{id:'cH'},{id:'cM'},{id:'cS'}],true);
+let clockCol='#00e5ff';
+function setClockCol(c){clockCol=c;clkDV.forEach(d=>d.style.color=c);clkSep.forEach(s=>s.querySelectorAll&&s.querySelectorAll('span').forEach(sp=>sp.style.background=c));}
+setClockCol(clockCol);
+function tickClock(){const n=new Date();$('cH').textContent=pad(n.getHours());$('cM').textContent=pad(n.getMinutes());$('cS').textContent=pad(n.getSeconds());}
+setInterval(tickClock,1000);tickClock();
+document.querySelectorAll('.sw').forEach(sw=>sw.addEventListener('click',()=>{document.querySelectorAll('.sw').forEach(x=>x.classList.remove('on'));sw.classList.add('on');setClockCol(sw.dataset.c);}));
+
+/* ══════════════ CHRONO ══════════════ */
+// Chrono avec centièmes — layout manuel dans s-chrono
+let chrMs=0,chrRun=false,chrRaf,chrStartTs,chrBaseMs=0;
+const chrScreen=$('s-chrono');
+chrScreen.innerHTML='';
+
+// Stage MM:SS
+const {stage:chrStage,dvals:chrDV,sepCols:chrSep}=buildStage(chrScreen,[{id:'chrM'},{id:'chrS'}],false);
+
+// Centièmes : bloc superposé en bas à droite du stage
+const chrCentDiv=document.createElement('div');
+chrCentDiv.style.cssText='position:absolute;bottom:0;right:0;display:flex;align-items:flex-end;padding-bottom:2%;padding-right:1%;z-index:8;pointer-events:none';
+const chrCentEl=document.createElement('div');
+chrCentEl.id='chrC';
+chrCentEl.style.cssText='font-family:"Bebas Neue",Impact,sans-serif;line-height:1;color:rgba(255,255,255,.75);white-space:nowrap;';
+chrCentEl.textContent='00';
+chrCentDiv.appendChild(chrCentEl);
+chrScreen.appendChild(chrCentDiv);
+
+function chrSizeCent(){
+  // centièmes = ~30% de la taille des chiffres principaux
+  const dv=document.getElementById('chrM');
+  if(!dv)return;
+  const fs=parseFloat(dv.style.fontSize)||100;
+  chrCentEl.style.fontSize=(fs*.18)+'px';
+}
+
+function chrRender(){
+  const total=chrRun?(chrBaseMs+performance.now()-chrStartTs):chrBaseMs;
+  const totalSec=Math.floor(total/1000);
+  const centièmes=Math.floor((total%1000)/10);
+  const[m,s]=fmt(totalSec);
+  $('chrM').textContent=m;$('chrS').textContent=s;
+  chrCentEl.textContent=pad(centièmes);
+}
+
+function chrTick(){
+  chrRender();
+  if(chrRun)chrRaf=requestAnimationFrame(chrTick);
+}
+
+function chrGo(){
+  chrStartTs=performance.now();
+  chrRun=true;
+  chrStage.querySelectorAll('.adj').forEach(b=>b.classList.add('off'));
+  sepUpdate(chrSep,'running',chrGo,chrPause,chrReset);
+  chrRaf=requestAnimationFrame(chrTick);
+}
+function chrPause(){
+  chrBaseMs+=performance.now()-chrStartTs;
+  cancelAnimationFrame(chrRaf);chrRun=false;beep(440,.08,.3);
+  sepUpdate(chrSep,'paused',chrGo,chrPause,chrReset);
+}
+function chrReset(){
+  cancelAnimationFrame(chrRaf);chrRun=false;chrBaseMs=0;chrRender();
+  chrStage.querySelectorAll('.adj').forEach(b=>b.classList.remove('off'));
+  sepUpdate(chrSep,'idle',chrGo,chrPause,chrReset);
+}
+chrReset();
+
+/* ══════════════ REBOURS ══════════════ */
+let rbTotal,rbRemain,rbRun=false,rbTick;
+const {stage:rbStage,dvals:rbDV,sepCols:rbSep}=buildStage($('s-rebours'),[
+  {id:'rbM',adj:{k:'rM',s:1}},{id:'rbS',adj:{k:'rS',s:1}}
+],false);
+
+function rbColor(){
+  const pct=rbTotal?(rbRemain/rbTotal):1;
+  const col=pct<.2?'#ff1744':pct<.4?'#ff9100':'#00e5ff';
+  rbDV.forEach(d=>d.style.color=col);
+  rbSep.forEach(sc=>{if(sc.dots)sc.dots.querySelectorAll('span').forEach(sp=>sp.style.background=col)});
+}
+function rbRender(){const val=rbRemain!==undefined?rbRemain:V.rM*60+V.rS;const[m,s]=fmt(val);$('rbM').textContent=m;$('rbS').textContent=s;rbColor();}
+
+function rbGo(){
+  if(rbRemain===undefined||rbRemain<=0){rbTotal=V.rM*60+V.rS;rbRemain=rbTotal;}
+  if(!rbTotal)return;
+  rbRun=true;
+  rbStage.querySelectorAll('.adj').forEach(b=>b.classList.add('off'));
+  sepUpdate(rbSep,'running',rbGo,rbPause,rbReset);
+  rbTick=setInterval(()=>{
+    rbRemain--;rbRender();
+    if(rbRemain>0&&rbRemain<=5)beep(880,.07,.4);
+    if(rbRemain<=0){
+      clearInterval(rbTick);rbRun=false;
+      rbDV.forEach(d=>d.classList.add('flash'));beepEnd();
+      sepUpdate(rbSep,'paused',rbGo,rbPause,rbReset);
+    }
+  },1000);
+}
+function rbPause(){
+  clearInterval(rbTick);rbRun=false;beep(440,.08,.3);
+  sepUpdate(rbSep,'paused',rbGo,rbPause,rbReset);
+}
+function rbReset(){
+  clearInterval(rbTick);rbRun=false;rbRemain=undefined;
+  rbDV.forEach(d=>d.classList.remove('flash'));
+  rbStage.querySelectorAll('.adj').forEach(b=>b.classList.remove('off'));
+  rbRender();sepUpdate(rbSep,'idle',rbGo,rbPause,rbReset);
+}
+rbReset();
+
+/* ══════════════ INTERVALLE ══════════════ */
+const ivScreen=$('s-interval');
+
+// Vue running
+const ivRunDiv=document.createElement('div');ivRunDiv.id='ivRunDiv';ivScreen.appendChild(ivRunDiv);
+const {stage:ivStage,dvals:ivDV,sepCols:ivSep}=buildStage(ivRunDiv,[{id:'ivM'},{id:'ivS'}],false);
+
+// Vue config
+const ivCfg=document.createElement('div');ivCfg.id='ivCfg';ivScreen.appendChild(ivCfg);
+
+// Colonnes travail / repos / répétitions
+const ivColsDiv=document.createElement('div');ivColsDiv.className='ivcols';ivCfg.appendChild(ivColsDiv);
+
+// Colonne travail
+const mkCol=(label,key,step,color,valId)=>{
+  const c=document.createElement('div');c.className='ivcol';
+  const bt=document.createElement('button');bt.className='adj t';bt.textContent='+';bt.dataset.k=key;bt.dataset.d=step;c.appendChild(bt);
+  const body=document.createElement('div');body.className='ivcol-body';
+  const lbl=document.createElement('div');lbl.className='ivcol-label';lbl.style.color=color;lbl.textContent=label;
+  const val=document.createElement('div');val.className='ivcol-val';val.id=valId;val.style.color=color;val.textContent=pad(V[key]);
+  body.appendChild(lbl);body.appendChild(val);c.appendChild(body);
+  const bb=document.createElement('button');bb.className='adj b';bb.textContent='−';bb.dataset.k=key;bb.dataset.d=-step;c.appendChild(bb);
+  return c;
+};
+ivColsDiv.appendChild(mkCol('TRAVAIL (s)','wS',1,'#00e676','wSv'));
+ivColsDiv.appendChild(mkCol('REPOS (s)','rSv',1,'#ff1744','rSvv'));
+
+// Colonne répétitions — avec toggle infini
+const repCol=document.createElement('div');repCol.className='ivcol';
+const repAdjT=document.createElement('button');repAdjT.className='adj t';repAdjT.textContent='+';repAdjT.dataset.k='iRp';repAdjT.dataset.d=1;
+const repBody=document.createElement('div');repBody.className='ivcol-body';
+const repLbl=document.createElement('div');repLbl.className='ivcol-label';repLbl.textContent='RÉPÉT.';
+const repVal=document.createElement('div');repVal.className='ivcol-val';repVal.id='iRpv';repVal.textContent=pad(V.iRp);
+repBody.appendChild(repLbl);repBody.appendChild(repVal);
+const repAdjB=document.createElement('button');repAdjB.className='adj b';repAdjB.textContent='−';repAdjB.dataset.k='iRp';repAdjB.dataset.d=-1;
+repCol.appendChild(repAdjT);repCol.appendChild(repBody);repCol.appendChild(repAdjB);
+ivColsDiv.appendChild(repCol);
+
+// Toggle infini
+let ivInfinite=false;
+const ivInfRow=document.createElement('div');ivInfRow.id='ivInfRow';
+const ivInfLbl=document.createElement('span');ivInfLbl.id='ivInfLabel';ivInfLbl.textContent='RÉPÉTITIONS INFINIES';
+const togWrap=document.createElement('div');togWrap.className='toggle-wrap';
+const togTrack=document.createElement('div');togTrack.className='toggle-track';
+const togThumb=document.createElement('div');togThumb.className='toggle-thumb';
+togTrack.appendChild(togThumb);togWrap.appendChild(togTrack);
+ivInfRow.appendChild(ivInfLbl);ivInfRow.appendChild(togWrap);ivCfg.appendChild(ivInfRow);
+
+function setInfinite(v){
+  ivInfinite=v;
+  togTrack.classList.toggle('on',v);
+  // Masquer/afficher les adj de répétitions
+  repAdjT.classList.toggle('off',v);
+  repAdjB.classList.toggle('off',v);
+  repVal.textContent=v?'∞':pad(V.iRp);
+  repVal.style.fontSize=v?'clamp(3rem,12vw,10rem)':'';
+}
+togWrap.addEventListener('click',()=>setInfinite(!ivInfinite));
+
+// Bouton LANCER
+const ivLancer=document.createElement('div');ivLancer.id='ivLancer';
+const ivLancerBtn=document.createElement('button');ivLancerBtn.id='ivLancerBtn';ivLancerBtn.textContent='▶ LANCER';
+ivLancerBtn.addEventListener('click',ivStart);
+ivLancer.appendChild(ivLancerBtn);ivCfg.appendChild(ivLancer);
+
+function ivSetView(show){
+  ivRunDiv.style.display=show?'block':'none';
+  ivCfg.style.display=show?'none':'flex';
+}
+
+let ivPhase,ivRemain,ivRep,ivTotal,ivWS,ivRS,ivRun=false,ivTick;
+
+function ivApplyPhase(){
+  const isW=ivPhase==='work';const col=isW?'#00e676':'#ff1744';
+  $('phaseLabel').textContent=isW?'TRAVAIL':'REPOS';$('phaseLabel').style.color=col;
+  ivScreen.style.background=isW?'rgba(0,70,25,.55)':'rgba(90,0,15,.55)';
+  ivDV.forEach(d=>d.style.color=col);
+  ivSep.forEach(sc=>{if(sc.dots)sc.dots.querySelectorAll('span').forEach(sp=>sp.style.background=col)});
+  const repTxt=ivInfinite?'∞':ivRep+'/'+ivTotal;
+  $('repBadge').textContent='Rep '+repTxt;
+  const[m,s]=fmt(ivRemain);$('ivM').textContent=m;$('ivS').textContent=s;
+  fitStage(ivStage,false);
+}
+
+function ivStart(){
+  ivWS=V.wS;ivRS=V.rSv;
+  ivTotal=ivInfinite?Infinity:V.iRp;
+  ivRep=1;ivPhase='work';ivRemain=ivWS;
+  ivSetView(true);
+  $('phaseLabel').style.display='block';$('repBadge').style.display='block';
+  ivGo();
+}
+function ivGo(){
+  ivRun=true;
+  ivStage.querySelectorAll('.adj').forEach(b=>b.classList.add('off'));
+  ivApplyPhase();sepUpdate(ivSep,'running',ivGo,ivPause,ivReset);
+  ivTick=setInterval(()=>{
+    ivRemain--;const[m,s]=fmt(ivRemain);$('ivM').textContent=m;$('ivS').textContent=s;
+    if(ivRemain>0&&ivRemain<=3)beep(880,.06,.35);
+    if(ivRemain<=0){
+      if(ivPhase==='work'){ivPhase='rest';ivRemain=ivRS;beepChange();ivApplyPhase();}
+      else{
+        if(!ivInfinite&&ivRep>=ivTotal){
+          clearInterval(ivTick);ivRun=false;
+          $('phaseLabel').textContent='TERMINÉ!';$('phaseLabel').style.color='#ffd600';
+          ivDV.forEach(d=>{d.style.color='#ffd600';d.classList.add('flash')});
+          beepEnd();sepUpdate(ivSep,'paused',ivGo,ivPause,ivReset);return;
+        }
+        ivRep++;ivPhase='work';ivRemain=ivWS;beepChange();ivApplyPhase();
+      }
+    }
+  },1000);
+}
+function ivPause(){
+  clearInterval(ivTick);ivRun=false;beep(440,.08,.3);
+  sepUpdate(ivSep,'paused',ivGo,ivPause,ivReset);
+}
+function ivReset(){
+  clearInterval(ivTick);ivRun=false;ivRemain=0;
+  ivSetView(false);
+  $('phaseLabel').style.display='none';$('repBadge').style.display='none';
+  ivScreen.style.background='';ivDV.forEach(d=>d.classList.remove('flash'));
+}
+ivSetView(false);
+
+/* ═══ ADJ BUTTONS ═══ */
+document.addEventListener('click',e=>{
+  const b=e.target.closest('[data-k]');if(!b||b.classList.contains('off'))return;
+  const k=b.dataset.k,d=parseInt(b.dataset.d);
+  if(k==='rS'){
+    V.rS+=d;
+    if(V.rS<0){if(V.rM>0)V.rM--;V.rS=59;}
+    if(V.rS>59){V.rM=Math.min(99,V.rM+1);V.rS=0;}
+    rbRender();
+  } else {
+    V[k]=Math.max(LIM[k][0],Math.min(LIM[k][1],V[k]+d));
+    if(STEP[k])V[k]=Math.round(V[k]/STEP[k])*STEP[k];
+    V[k]=Math.max(LIM[k][0],Math.min(LIM[k][1],V[k]));
+    if(k==='rM')rbRender();
+    if(k==='wS')$('wSv').textContent=pad(V[k]);
+    if(k==='rSv')$('rSvv').textContent=pad(V[k]);
+    if(k==='iRp'&&!ivInfinite)$('iRpv').textContent=pad(V[k]);
+  }
+  beep(660,.05,.25);
+});
+
+/* ═══ NAVIGATION ═══ */
+let cur='clock';
+document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>{
+  stopAll();
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));
+  document.querySelectorAll('.screen').forEach(x=>x.classList.remove('on'));
+  t.classList.add('on');cur=t.dataset.s;$('s-'+cur).classList.add('on');
+  $('phaseLabel').style.display='none';$('repBadge').style.display='none';
+  $('swatches').style.display=(cur==='clock')?'flex':'none';
+  if(cur==='interval'){ivSetView(false);ivScreen.style.background='';}
+  setTimeout(fitAll,50);
+}));
+
+function stopAll(){
+  cancelAnimationFrame(chrRaf);clearInterval(rbTick);clearInterval(ivTick);
+  chrRun=rbRun=ivRun=false;
+}
+
+/* ═══ FIT ALL ═══ */
+function fitAll(){
+  fitStage(clkStage,true);fitStage(chrStage,false);chrSizeCent();fitStage(rbStage,false);
+  if(ivRunDiv.style.display!=='none')fitStage(ivStage,false);
+}
+window.addEventListener('resize',()=>setTimeout(fitAll,30));
+document.fonts.ready.then(()=>setTimeout(fitAll,80));
+setTimeout(fitAll,200);
+
+/* ═══ FULLSCREEN ═══ */
+$('btnFS').addEventListener('click',()=>{if(!document.fullscreenElement)document.documentElement.requestFullscreen().catch(()=>{});else document.exitFullscreen();});
+document.addEventListener('fullscreenchange',()=>setTimeout(fitAll,100));
+
+/* ═══ WAKELOCK ═══ */
+async function wakelock(){try{if('wakeLock'in navigator)await navigator.wakeLock.request('screen')}catch(e){}}
+wakelock();
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')wakelock()});
+</script>
+</body>
+</html>
