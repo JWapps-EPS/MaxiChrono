@@ -10,7 +10,7 @@
 html,body{width:100%;height:100%;overflow:hidden;background:#000;color:#fff;font-family:'Bebas Neue',Impact,sans-serif}
 
 #tabs{position:fixed;top:0;left:0;right:0;height:56px;display:flex;background:rgba(0,0,0,.95);border-bottom:1px solid #222;z-index:200}
-.tab{flex:1;border:none;background:none;color:rgba(255,255,255,.4);font-family:inherit;font-size:clamp(.6rem,2vw,.95rem);letter-spacing:1.5px;cursor:pointer;border-right:1px solid #222;transition:color .15s,background .15s}
+.tab{flex:1;border:none;background:none;color:rgba(255,255,255,.4);font-family:inherit;font-size:clamp(.6rem,2vw,.95rem);letter-spacing:1.5px;cursor:pointer;border-right:1px solid #222;transition:color .15s,background .15s;touch-action:manipulation}
 .tab.on{color:#fff;background:rgba(255,255,255,.07)}
 #btnFS{width:52px;border:none;background:none;color:rgba(255,255,255,.45);font-size:1.3rem;cursor:pointer;border-left:1px solid #222;flex-shrink:0}
 
@@ -23,7 +23,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000;color:#fff;font
 .dval{font-family:'Bebas Neue',Impact,sans-serif;line-height:1;white-space:nowrap;transition:color .3s}
 
 /* Boutons +/- sur les chiffres */
-.adj{position:absolute;left:0;right:0;height:20%;background:rgba(255,255,255,.1);border:none;color:#fff;font-family:inherit;font-size:clamp(1.2rem,4vw,3rem);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:opacity .25s,background .15s;z-index:5}
+.adj{position:absolute;left:0;right:0;height:20%;background:rgba(255,255,255,.1);border:none;color:#fff;font-family:inherit;font-size:clamp(1.2rem,4vw,3rem);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:opacity .25s,background .15s;z-index:5;touch-action:manipulation}
 .adj.t{top:0;border-radius:0 0 6px 6px}
 .adj.b{bottom:0;border-radius:6px 6px 0 0}
 .adj:active{background:rgba(255,255,255,.28)}
@@ -33,7 +33,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000;color:#fff;font
 .sep-col{width:clamp(44px,7vw,80px);flex-shrink:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(8px,2vh,24px);position:relative;z-index:10}
 .sep-dot{display:flex;flex-direction:column;align-items:center;gap:clamp(8px,2vh,24px);pointer-events:none;transition:opacity .25s;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%)}
 .sep-dot span{width:clamp(8px,1.4vw,14px);height:clamp(8px,1.4vw,14px);border-radius:50%;background:rgba(255,255,255,.35);display:block}
-.sep-btn{width:clamp(36px,5.5vw,64px);height:clamp(36px,5.5vw,64px);border-radius:50%;border:2px solid rgba(255,255,255,.3);background:rgba(255,255,255,.1);color:#fff;font-size:clamp(.9rem,2vw,1.6rem);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s,opacity .25s;flex-shrink:0;position:relative;z-index:10}
+.sep-btn{width:clamp(36px,5.5vw,64px);height:clamp(36px,5.5vw,64px);border-radius:50%;border:2px solid rgba(255,255,255,.3);background:rgba(255,255,255,.1);color:#fff;font-size:clamp(.9rem,2vw,1.6rem);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s,opacity .25s;flex-shrink:0;position:relative;z-index:10;touch-action:manipulation}
 .sep-btn:active{background:rgba(255,255,255,.35)}
 .sep-btn.is-running{background:#e65100;border-color:#e65100}
 .sep-btn.off{opacity:0;pointer-events:none}
@@ -54,14 +54,30 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000;color:#fff;font
 
 /* ── CONFIG INTERVALLE ── */
 #ivScreen{position:absolute;inset:0}
-#ivCfg{position:absolute;inset:0;display:flex;flex-direction:column}
-.ivcols{display:flex;flex:1;min-height:0}
-.ivcol{flex:1;height:100%;display:flex;flex-direction:column;position:relative;border-right:1px solid #222}
-.ivcol:last-child{border-right:none}
-.ivcol .adj{height:22%}
-.ivcol-body{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px}
-.ivcol-label{font-size:clamp(.6rem,2vw,1.1rem);letter-spacing:3px;opacity:.65}
-.ivcol-val{font-size:clamp(2rem,9vw,8rem);line-height:1;transition:color .2s}
+#ivCfg{position:absolute;inset:0;display:flex;flex-direction:column;overflow:hidden}
+/* Rangées travail / repos */
+.ivrow{display:flex;flex:1;min-height:0;border-bottom:2px solid #222}
+.ivrow:last-of-type{border-bottom:none}
+.ivrow-label{writing-mode:vertical-rl;text-orientation:mixed;transform:rotate(180deg);font-size:clamp(.7rem,2vw,1.1rem);letter-spacing:3px;display:flex;align-items:center;justify-content:center;padding:0 8px;flex-shrink:0;opacity:.8;min-width:32px}
+/* Colonnes MM / : / SS dans chaque rangée */
+.ivcol{flex:1;height:100%;display:flex;flex-direction:column;position:relative}
+.ivcol-sep{width:clamp(18px,3vw,36px);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:clamp(1.5rem,5vw,5rem);opacity:.4;font-family:"Bebas Neue",Impact,sans-serif}
+.ivcol .adj{height:22%;left:0;right:0}
+.ivcol-body{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.ivcol-sublabel{font-size:clamp(.55rem,1.5vw,.9rem);letter-spacing:2px;opacity:.5;margin-bottom:2px}
+.ivcol-val{line-height:1;transition:color .2s;font-family:"Bebas Neue",Impact,sans-serif;font-size:clamp(1.8rem,8vw,99vw)}
+/* Rangée répétitions + toggle + lancer */
+#ivBottom{display:flex;align-items:stretch;border-top:2px solid #222;flex-shrink:0;min-height:clamp(64px,16vh,130px)}
+#ivRepCol{flex:1;display:flex;flex-direction:column;position:relative;border-right:1px solid #333}
+#ivRepBody{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+#ivRepLabel{font-size:clamp(.55rem,1.5vw,.9rem);letter-spacing:3px;opacity:.6}
+#ivRepVal{font-family:"Bebas Neue",Impact,sans-serif;font-size:clamp(1.5rem,6vw,5rem);line-height:1}
+#ivInfCol{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:8px;border-right:1px solid #333}
+#ivInfLabel{font-size:clamp(.55rem,1.5vw,.9rem);letter-spacing:2px;opacity:.65;text-align:center}
+#ivLancer{flex:1;display:flex;align-items:center;justify-content:center;padding:8px}
+#ivLancerBtn{background:#00c853;color:#000;border:none;font-family:inherit;font-size:clamp(1rem,3.5vw,2.2rem);letter-spacing:3px;padding:clamp(8px,1.5vh,16px) clamp(16px,3vw,40px);border-radius:10px;cursor:pointer;transition:background .15s,transform .1s;width:90%;touch-action:manipulation}
+#ivLancerBtn:hover{background:#00e676}
+#ivLancerBtn:active{transform:scale(.96)}
 
 /* Ligne infinite toggle */
 #ivInfRow{display:flex;align-items:center;justify-content:center;gap:16px;padding:14px 0;border-top:1px solid #222;flex-shrink:0}
@@ -270,8 +286,8 @@ function fitStage(stageEl,isClockMode){
 }
 
 /* ═══ CONFIG ═══ */
-const V={rM:5,rS:0,wS:30,rSv:15,iRp:6};
-const LIM={rM:[0,99],rS:[0,59],wS:[5,599],rSv:[5,599],iRp:[1,99]};
+const V={rM:5,rS:0,wM:0,wS:30,rM2:0,rS2:15,iRp:6};
+const LIM={rM:[0,99],rS:[0,59],wM:[0,99],wS:[0,59],rM2:[0,99],rS2:[0,59],iRp:[1,99]};
 const STEP={};
 
 /* ══════════════ CLOCK ══════════════ */
@@ -395,60 +411,73 @@ const {stage:ivStage,dvals:ivDV,sepCols:ivSep}=buildStage(ivRunDiv,[{id:'ivM'},{
 // Vue config
 const ivCfg=document.createElement('div');ivCfg.id='ivCfg';ivScreen.appendChild(ivCfg);
 
-// Colonnes travail / repos / répétitions
-const ivColsDiv=document.createElement('div');ivColsDiv.className='ivcols';ivCfg.appendChild(ivColsDiv);
-
-// Colonne travail
-const mkCol=(label,key,step,color,valId)=>{
-  const c=document.createElement('div');c.className='ivcol';
-  const bt=document.createElement('button');bt.className='adj t';bt.textContent='+';bt.dataset.k=key;bt.dataset.d=step;c.appendChild(bt);
-  const body=document.createElement('div');body.className='ivcol-body';
-  const lbl=document.createElement('div');lbl.className='ivcol-label';lbl.style.color=color;lbl.textContent=label;
-  const val=document.createElement('div');val.className='ivcol-val';val.id=valId;val.style.color=color;val.textContent=pad(V[key]);
-  body.appendChild(lbl);body.appendChild(val);c.appendChild(body);
-  const bb=document.createElement('button');bb.className='adj b';bb.textContent='−';bb.dataset.k=key;bb.dataset.d=-step;c.appendChild(bb);
-  return c;
+// Fonction pour créer une rangée MM:SS (travail ou repos)
+const mkRow=(label,color,keyM,keyS,valIdM,valIdS)=>{
+  const row=document.createElement('div');row.className='ivrow';
+  // label vertical
+  const rl=document.createElement('div');rl.className='ivrow-label';rl.style.color=color;rl.textContent=label;row.appendChild(rl);
+  // col minutes
+  const colM=document.createElement('div');colM.className='ivcol';
+  const btM=document.createElement('button');btM.className='adj t';btM.textContent='+';btM.dataset.k=keyM;btM.dataset.d=1;colM.appendChild(btM);
+  const bodyM=document.createElement('div');bodyM.className='ivcol-body';
+  const subM=document.createElement('div');subM.className='ivcol-sublabel';subM.textContent='MIN';
+  const valM=document.createElement('div');valM.className='ivcol-val';valM.id=valIdM;valM.style.color=color;valM.textContent=pad(V[keyM]);
+  bodyM.appendChild(subM);bodyM.appendChild(valM);colM.appendChild(bodyM);
+  const bbM=document.createElement('button');bbM.className='adj b';bbM.textContent='−';bbM.dataset.k=keyM;bbM.dataset.d=-1;colM.appendChild(bbM);
+  row.appendChild(colM);
+  // séparateur
+  const sep=document.createElement('div');sep.className='ivcol-sep';sep.textContent=':';row.appendChild(sep);
+  // col secondes
+  const colS=document.createElement('div');colS.className='ivcol';
+  const btS=document.createElement('button');btS.className='adj t';btS.textContent='+';btS.dataset.k=keyS;btS.dataset.d=1;colS.appendChild(btS);
+  const bodyS=document.createElement('div');bodyS.className='ivcol-body';
+  const subS=document.createElement('div');subS.className='ivcol-sublabel';subS.textContent='SEC';
+  const valS=document.createElement('div');valS.className='ivcol-val';valS.id=valIdS;valS.style.color=color;valS.textContent=pad(V[keyS]);
+  bodyS.appendChild(subS);bodyS.appendChild(valS);colS.appendChild(bodyS);
+  const bbS=document.createElement('button');bbS.className='adj b';bbS.textContent='−';bbS.dataset.k=keyS;bbS.dataset.d=-1;colS.appendChild(bbS);
+  row.appendChild(colS);
+  return row;
 };
-ivColsDiv.appendChild(mkCol('TRAVAIL (s)','wS',1,'#00e676','wSv'));
-ivColsDiv.appendChild(mkCol('REPOS (s)','rSv',1,'#ff1744','rSvv'));
 
-// Colonne répétitions — avec toggle infini
-const repCol=document.createElement('div');repCol.className='ivcol';
+ivCfg.appendChild(mkRow('TRAVAIL','#00e676','wM','wS','wMv','wSv'));
+ivCfg.appendChild(mkRow('REPOS','#ff1744','rM2','rS2','rMv','rSvv'));
+
+// Rangée du bas : répétitions + toggle infini + lancer
+const ivBottom=document.createElement('div');ivBottom.id='ivBottom';ivCfg.appendChild(ivBottom);
+
+// Colonne répétitions
+const ivRepCol=document.createElement('div');ivRepCol.id='ivRepCol';
 const repAdjT=document.createElement('button');repAdjT.className='adj t';repAdjT.textContent='+';repAdjT.dataset.k='iRp';repAdjT.dataset.d=1;
-const repBody=document.createElement('div');repBody.className='ivcol-body';
-const repLbl=document.createElement('div');repLbl.className='ivcol-label';repLbl.textContent='RÉPÉT.';
-const repVal=document.createElement('div');repVal.className='ivcol-val';repVal.id='iRpv';repVal.textContent=pad(V.iRp);
+const repBody=document.createElement('div');repBody.id='ivRepBody';
+const repLbl=document.createElement('div');repLbl.id='ivRepLabel';repLbl.textContent='RÉPÉTITIONS';
+const repVal=document.createElement('div');repVal.id='ivRepVal';repVal.textContent=pad(V.iRp);
 repBody.appendChild(repLbl);repBody.appendChild(repVal);
 const repAdjB=document.createElement('button');repAdjB.className='adj b';repAdjB.textContent='−';repAdjB.dataset.k='iRp';repAdjB.dataset.d=-1;
-repCol.appendChild(repAdjT);repCol.appendChild(repBody);repCol.appendChild(repAdjB);
-ivColsDiv.appendChild(repCol);
+ivRepCol.appendChild(repAdjT);ivRepCol.appendChild(repBody);ivRepCol.appendChild(repAdjB);
+ivBottom.appendChild(ivRepCol);
 
 // Toggle infini
 let ivInfinite=false;
-const ivInfRow=document.createElement('div');ivInfRow.id='ivInfRow';
-const ivInfLbl=document.createElement('span');ivInfLbl.id='ivInfLabel';ivInfLbl.textContent='RÉPÉTITIONS INFINIES';
+const ivInfCol=document.createElement('div');ivInfCol.id='ivInfCol';
+const ivInfLbl=document.createElement('div');ivInfLbl.id='ivInfLabel';ivInfLbl.textContent='∞ INFINI';
 const togWrap=document.createElement('div');togWrap.className='toggle-wrap';
 const togTrack=document.createElement('div');togTrack.className='toggle-track';
 const togThumb=document.createElement('div');togThumb.className='toggle-thumb';
 togTrack.appendChild(togThumb);togWrap.appendChild(togTrack);
-ivInfRow.appendChild(ivInfLbl);ivInfRow.appendChild(togWrap);ivCfg.appendChild(ivInfRow);
+ivInfCol.appendChild(ivInfLbl);ivInfCol.appendChild(togWrap);ivBottom.appendChild(ivInfCol);
 
 function setInfinite(v){
-  ivInfinite=v;
-  togTrack.classList.toggle('on',v);
-  // Masquer/afficher les adj de répétitions
-  repAdjT.classList.toggle('off',v);
-  repAdjB.classList.toggle('off',v);
+  ivInfinite=v;togTrack.classList.toggle('on',v);
+  repAdjT.classList.toggle('off',v);repAdjB.classList.toggle('off',v);
   repVal.textContent=v?'∞':pad(V.iRp);
-  repVal.style.fontSize=v?'clamp(3rem,12vw,10rem)':'';
 }
 togWrap.addEventListener('click',()=>setInfinite(!ivInfinite));
 
-// Bouton LANCER
+// Bouton lancer
 const ivLancer=document.createElement('div');ivLancer.id='ivLancer';
 const ivLancerBtn=document.createElement('button');ivLancerBtn.id='ivLancerBtn';ivLancerBtn.textContent='▶ LANCER';
 ivLancerBtn.addEventListener('click',ivStart);
-ivLancer.appendChild(ivLancerBtn);ivCfg.appendChild(ivLancer);
+ivLancer.appendChild(ivLancerBtn);ivBottom.appendChild(ivLancer);
 
 function ivSetView(show){
   ivRunDiv.style.display=show?'block':'none';
@@ -470,7 +499,7 @@ function ivApplyPhase(){
 }
 
 function ivStart(){
-  ivWS=V.wS;ivRS=V.rSv;
+  ivWS=V.wM*60+V.wS;ivRS=V.rM2*60+V.rS2;
   ivTotal=ivInfinite?Infinity:V.iRp;
   ivRep=1;ivPhase='work';ivRemain=ivWS;
   ivSetView(true);
@@ -519,14 +548,24 @@ document.addEventListener('click',e=>{
     if(V.rS<0){if(V.rM>0)V.rM--;V.rS=59;}
     if(V.rS>59){V.rM=Math.min(99,V.rM+1);V.rS=0;}
     rbRender();
+  } else if(k==='wS'){
+    V.wS+=d;
+    if(V.wS<0){if(V.wM>0)V.wM--;V.wS=59;$('wMv').textContent=pad(V.wM);}
+    else if(V.wS>59){V.wM=Math.min(99,V.wM+1);V.wS=0;$('wMv').textContent=pad(V.wM);}
+    $('wSv').textContent=pad(V.wS);
+  } else if(k==='rS2'){
+    V.rS2+=d;
+    if(V.rS2<0){if(V.rM2>0)V.rM2--;V.rS2=59;$('rMv').textContent=pad(V.rM2);}
+    else if(V.rS2>59){V.rM2=Math.min(99,V.rM2+1);V.rS2=0;$('rMv').textContent=pad(V.rM2);}
+    $('rSvv').textContent=pad(V.rS2);
   } else {
     V[k]=Math.max(LIM[k][0],Math.min(LIM[k][1],V[k]+d));
     if(STEP[k])V[k]=Math.round(V[k]/STEP[k])*STEP[k];
     V[k]=Math.max(LIM[k][0],Math.min(LIM[k][1],V[k]));
     if(k==='rM')rbRender();
-    if(k==='wS')$('wSv').textContent=pad(V[k]);
-    if(k==='rSv')$('rSvv').textContent=pad(V[k]);
-    if(k==='iRp'&&!ivInfinite)$('iRpv').textContent=pad(V[k]);
+    if(k==='wM')$('wMv').textContent=pad(V[k]);
+    if(k==='rM2')$('rMv').textContent=pad(V[k]);
+    if(k==='iRp'&&!ivInfinite){repVal.textContent=pad(V[k]);}
   }
   beep(660,.05,.25);
 });
